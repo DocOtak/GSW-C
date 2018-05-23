@@ -1,29 +1,28 @@
 #
 #  $Id: Makefile,v 1e5e75c749c2 2015/08/08 22:03:51 fdelahoyde $
 #
-                   CC:=gcc
-               CFLAGS:=-O3
-            CINCLUDES:=
-              Library:=libgswteos-10.so
-              Program:=gsw_check
-      $(Program)_SRCS:=gsw_check_functions.c \
-                       gsw_oceanographic_toolbox.c \
-                       gsw_saar.c
-      $(Library)_SRCS:=gsw_oceanographic_toolbox.c \
-                       gsw_saar.c
-      $(Library)_OBJS:=gsw_oceanographic_toolbox.o \
-                       gsw_saar.o
+               CFLAGS+=-O3
+            CINCLUDES+=-Iinclude
+             BUILDDIR:=build
+               LIBDIR:=lib
+               BINDIR:=bin
+               SRCDIR:=src
 
-all:$(Program)
+              LIBNAME:=libgswteos-10.so
 
-$(Program):$($(Program)_SRCS)
-    $(CC) $(CFLAGS) $(CINCLUDES) -o $(Program) $($(Program)_SRCS) -lm
+SRCFILES := $(wildcard $(SRCDIR)/*.c) 
+OBJFILES := $(patsubst $(SRCDIR)/%.c,$(BUILDDIR)/%.o,$(SRCFILES)) 
 
-library:$(Library)
+.PHONY: all clean
 
-$(Library):$($(Library)_SRCS)
-    $(CC) -fPIC -c $(CFLAGS) $(CINCLUDES) $($(Library)_SRCS)
-    $(CC) -shared -o $(Library) $($(Library)_OBJS) -lm
+all:$(LIBNAME)
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c 
+	mkdir -p $(BUILDDIR)
+	$(CC) -fPIC -c $(CFLAGS) $(CINCLUDES) $< -o $@ 
+
+$(LIBNAME): $(OBJFILES)
+	$(CC) -shared -o $(LIBNAME) $(OBJFILES) -lm
 
 clean:
-    rm -f $(Program) $(Library) $($(Library)_OBJS)
+	rm -rf $(BUILDDIR) $(LIBDIR) $(BINDIR) $(LIBNAME)
